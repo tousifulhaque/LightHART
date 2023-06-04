@@ -251,7 +251,7 @@ class Poses3d_Dataset(torch.utils.data.Dataset):
             mocap_ext = torch.zeros((self.mocap_frames,29,4))
             mocap_ext[:,:,:3] = mocap_sig
 
-            # data_sample = torch.cat((mocap_ext,acc_ext),dim=1) #600x29x3 + 600x162x3 = 200 x 191 x 3
+            # data_sample = torch.cat((mocap_ext,acc_ext),dim=1) #600x29x4 + 600x162x4 = 200 x 191 x 3
             
             return mocap_ext, acc_ext #mocap_frames x ACC_FEATUTES+acc_frames+num_joints x 3 = 191
 
@@ -274,3 +274,21 @@ class Poses3d_Dataset(torch.utils.data.Dataset):
             y = self.labels[ID]
             return X, acc_ext, y
 
+class Utd_Dataset(torch.utils.data.Dataset):
+    def __init__(self, npz_file):
+        # Load data and labels from npz file
+        dataset = np.load(npz_file)
+        self.dataset = dataset['data']
+        self.labels = dataset['labels']
+        self.num_samples = self.dataset.shape[0]
+
+    def __len__(self):
+        return self.num_samples
+
+    def __getitem__(self, index):
+        # Get the batch containing the requested index
+        data = self.dataset[index, :, : , :]
+        data = torch.tensor(data)
+        label = self.labels[index]
+        label = torch.tensor(label)
+        return data, label

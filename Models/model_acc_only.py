@@ -154,7 +154,7 @@ class ActTransformerAcc(nn.Module):
         print(f'Accelerometer shape {sx.shape}')
         sx = self.class_head(sx)
 
-        return sx, F.log_softmax(sx,dim=1)
+        return sxf, F.log_softmax(sx,dim=1)
 
 '''
 model=ActRecogTransformer()

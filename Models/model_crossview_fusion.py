@@ -18,7 +18,7 @@ from .model_utils import Block
 
 
 class ActTransformerMM(nn.Module):
-    def __init__(self, device='cpu' , mocap_frames=600, acc_frames=150, num_joints=29, in_chans=3, acc_coords=3, acc_features=18, spatial_embed=32,
+    def __init__(self, device='cpu' , mocap_frames=600, acc_frames=150, num_joints=29, in_chans=3, acc_coords=3, acc_features=18, spatial_embed=32,has_features = False,
                  sdepth=4, adepth=4, tdepth=4, num_heads=8, mlp_ratio=2., qkv_bias=True,
                  qk_scale=None, op_type='cls', embed_type='lin', fuse_acc_features=False,
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0.2,  norm_layer=None, num_classes=6):
@@ -92,7 +92,7 @@ class ActTransformerMM(nn.Module):
         self.Temporal_pos_embed = nn.Parameter(torch.zeros(1, temp_frames+1, temp_embed)) #additional pos embedding zero for class token
         self.temp_frames = mocap_frames
         self.tdepth = tdepth
-
+        self.has_features = has_features
         #Acceleration patch and pos embeddings
         if embed_type=='lin':
             self.Acc_coords_to_embedding = nn.Linear(acc_coords, acc_embed) #Linear patch embedding
@@ -276,14 +276,20 @@ class ActTransformerMM(nn.Module):
         x = inputs[:,:, :self.num_joints, :self.joint_coords] #B x Fs x num_joints x 3
         
         #Extract acc signal from input
-        sxf = inputs[:, 0, self.num_joints:self.num_joints+18, 0 ] #B x 1 x acc_features x 1
-        sx = inputs[:, 0 , self.num_joints+18:, :self.acc_coords] #B x 1 x Fa x 3
+        if self.has_features: 
+            sxf = inputs[:, 0, self.num_joints:self.num_joints+self.acc_features, 0 ] #B x 1 x acc_features x 1
+            sx = inputs[:, 0 , self.num_joints+self.acc_features:, :self.acc_coords] #B x 1 x Fa x 3
+            sxf = self.acc_features_embed(sxf)
+            
+        else:
+            sx = inputs[:, 0 , self.num_joints:, :self.acc_coords]
         sx = torch.reshape(sx, (b,-1,1,self.acc_coords) ) #B x Fa x 1 x 3
         
 
         #Get acceleration features
+        
         sx,cv_signals = self.Acc_forward_features(sx) #in: F x Fa x 3 x 1,  op: B x St
-        sxf = self.acc_features_embed(sxf)
+        
         if self.fuse_acc_features:
             sx+= sxf #Add the features signal to acceleration signal
         
@@ -300,7 +306,6 @@ class ActTransformerMM(nn.Module):
         
         #Concat features along frame dimension
         x += sx #torch.cat((x,sx), dim=1)
-        print(f'fusion shape: {x.shape}')
 
         x = self.class_head(x)
 

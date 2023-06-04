@@ -2,12 +2,12 @@ import argparse
 
 def parse_args():
 
-    parser = argparse.ArgumentParser(description = 'Pytorch MNIST Example')
-    parser.add_argument('--batch-size', type = int, default = 128, metavar = 'N',
-                        help = 'input batch size for training (default: 64)')
+    parser = argparse.ArgumentParser(description = 'Knowledge Distillation')
+    parser.add_argument('--batch-size', type = int, default = 8, metavar = 'N',
+                        help = 'input batch size for training (default: 8)')
 
-    parser.add_argument('--test-batch-size', type = int, default = 10000, 
-                        metavar = 'N', help = 'input batch size for testing(default: 1000)')
+    parser.add_argument('--test-batch-size', type = int, default = 8, 
+                        metavar = 'N', help = 'input batch size for testing(default: 8)')
 
     parser.add_argument('--epochs', type = int , default = 10, metavar = 'N', 
                         help = 'number of epochs to train (default: 10)')

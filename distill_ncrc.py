@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from Make_Dataset import Poses3d_Dataset
+from Make_Dataset import Poses3d_Dataset,Utd_Dataset
 import torch.nn as nn
 import PreProcessing_ncrc
 from Models.model_crossview_fusion import ActTransformerMM
@@ -25,7 +25,6 @@ PATH='exps/'+exp+'/'
 print("Using CUDA....")
 
 use_cuda = torch.cuda.is_available()
-print(use_cuda)
 device = torch.device("cuda:0" if use_cuda else "cpu")
 torch.backends.cudnn.benchmark = True
 
@@ -52,24 +51,38 @@ num_epochs = 250
 
 # Generators
 #pose2id,labels,partition = PreProcessing_ncrc_losocv.preprocess_losocv(8)
-pose2id, labels, partition = PreProcessing_ncrc.preprocess()
+tr_pose2id,tr_labels,valid_pose2id,valid_labels,pose2id,labels,partition = PreProcessing_ncrc.preprocess()
 
 print("Creating Data Generators...")
-mocap_frames = 600
+dataset = 'utd'
+mocap_frames = 100
 acc_frames = 150
-training_set = Poses3d_Dataset( data='ncrc',list_IDs=partition['train'], labels=labels, pose2id=pose2id, mocap_frames=mocap_frames, acc_frames=acc_frames, normalize=False)
-training_generator = torch.utils.data.DataLoader(training_set, **params) #Each produced sample is  200 x 59 x 3
 
-validation_set = Poses3d_Dataset(data='ncrc',list_IDs=partition['test'], labels=labels, pose2id=pose2id, mocap_frames=mocap_frames, acc_frames=acc_frames ,normalize=False)
-validation_generator = torch.utils.data.DataLoader(validation_set, **params) #Each produced sample is 6000 x 229 x 3
+if dataset == 'ncrc':
+    training_set = Poses3d_Dataset( data='ncrc',list_IDs=partition['train'], labels=tr_labels, pose2id=tr_pose2id, mocap_frames=mocap_frames, acc_frames=acc_frames, normalize=False)
+    training_generator = torch.utils.data.DataLoader(training_set, **params) #Each produced sample is  200 x 59 x 3
+
+    validation_set = Poses3d_Dataset(data='ncrc',list_IDs=partition['test'], labels=valid_labels, pose2id=valid_pose2id, mocap_frames=mocap_frames, acc_frames=acc_frames ,normalize=False)
+    validation_generator = torch.utils.data.DataLoader(validation_set, **params) #Each produced sample is 6000 x 229 x 3
+
+else:
+    training_set = Utd_Dataset('Datasets/UTD_MAAD/train_data.npz')
+    training_generator = torch.utils.data.DataLoader(training_set, **params)
+
+    validation_set = Utd_Dataset('Datasets/UTD_MAAD/valid_data.npz')
+    validation_generator = torch.utils.data.DataLoader(validation_set, **params)
+
+
+
 
 #Define model
 print("Initiating Model...")
-teacher_model = ActTransformerMM(device)
+teacher_model = ActTransformerMM(mocap_frames=100, acc_frames=150, num_joints=20, in_chans=3, acc_coords=3,
+                                  acc_features=0, spatial_embed=32,has_features = False,num_classes=27)
 student_model = ActTransformerAcc(device)
 
-teacher_model.cuda()
-student_model.cuda()
+# teacher_model.cuda()
+# student_model.cuda()
 
 
 print("-----------TRAINING PARAMS----------")
@@ -110,7 +123,7 @@ def train(epoch, num_epochs, student_model, teacher_model, loss_fn, best_accurac
 
             # Ascent Step
             #print("labels: ",targets)
-            predictions = student_model(inputs.float())
+            sx, predictions = student_model(inputs.float())
             teacher_output = teacher_model(inputs.float())
             # detached_pred = predictions.detach()
             # teacher_output = teacher_output.detach()
@@ -192,8 +205,8 @@ if __name__ == "__main__":
     epoch_loss_val=[]
     epoch_acc_train=[]
     epoch_acc_val=[]
-    teacher_model.load_state_dict(torch.load('weights/model_crossview_fusion.pt'))
-    student_model.load_state_dict(torch.load('exps/myexp-1/myexp-1_best_ckpt.pt'))
+    teacher_model.load_state_dict(torch.load('weights/model_crossview_fusion.pt', map_location=torch.device(device)))
+    # student_model.load_state_dict(torch.load('exps/myexp-1/myexp-1_best_ckpt.pt', map_location=torch.device(device)))
     #Optimizer
     optimizer = torch.optim.SGD(student_model.parameters(), lr=lr, momentum=0.9,weight_decay=wt_decay)
     #optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wt_decay)

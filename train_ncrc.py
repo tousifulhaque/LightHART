@@ -1,9 +1,9 @@
 import torch
 import numpy as np
-from Make_Dataset import Poses3d_Dataset
+from Make_Dataset import Poses3d_Dataset, Utd_Dataset
 import PreProcessing_ncrc
-from Model.model_crossview_fusion import ActRecogTransformer
-from Tools.visualize import get_plot
+from Models.model_crossview_fusion import ActTransformerMM
+# from Tools.visualize import get_plot
 import pickle
 from asam import ASAM, SAM
 from timm.loss import LabelSmoothingCrossEntropy
@@ -31,21 +31,32 @@ max_epochs = 250
 
 # Generators
 #pose2id,labels,partition = PreProcessing_ncrc_losocv.preprocess_losocv(8)
-pose2id, labels, partition = PreProcessing_ncrc.preprocess()
+# pose2id, labels, partition = PreProcessing_ncrc.preprocess()
 
 print("Creating Data Generators...")
-mocap_frames = 600
+dataset = 'utd'
+mocap_frames = 100
 acc_frames = 150
 
-training_set = Poses3d_Dataset( data='ncrc',list_IDs=partition['train'], labels=labels, pose2id=pose2id, mocap_frames=mocap_frames, acc_frames=acc_frames, normalize=False)
-training_generator = torch.utils.data.DataLoader(training_set, **params) #Each produced sample is  200 x 59 x 3
+if dataset == 'ncrc':
+    training_set = Poses3d_Dataset( data='ncrc',list_IDs=partition['train'], labels=tr_labels, pose2id=tr_pose2id, mocap_frames=mocap_frames, acc_frames=acc_frames, normalize=False)
+    training_generator = torch.utils.data.DataLoader(training_set, **params) #Each produced sample is  200 x 59 x 3
 
-validation_set = Poses3d_Dataset(data='ncrc',list_IDs=partition['test'], labels=labels, pose2id=pose2id, mocap_frames=mocap_frames, acc_frames=acc_frames ,normalize=False)
-validation_generator = torch.utils.data.DataLoader(validation_set, **params) #Each produced sample is 6000 x 229 x 3
+    validation_set = Poses3d_Dataset(data='ncrc',list_IDs=partition['test'], labels=valid_labels, pose2id=valid_pose2id, mocap_frames=mocap_frames, acc_frames=acc_frames ,normalize=False)
+    validation_generator = torch.utils.data.DataLoader(validation_set, **params) #Each produced sample is 6000 x 229 x 3
+
+else:
+    training_set = Utd_Dataset('/Users/tousif/Lstm_transformer/Datasets/UTD_MAAD/train_data.npz')
+    training_generator = torch.utils.data.DataLoader(training_set, **params)
+
+    validation_set = Utd_Dataset('/Users/tousif/Lstm_transformer/Datasets/UTD_MAAD/valid_data.npz')
+    validation_generator = torch.utils.data.DataLoader(validation_set, **params)
+
 
 #Define model
 print("Initiating Model...")
-model = ActRecogTransformer(device)
+model = ActTransformerMM(device = device, mocap_frames=100, acc_frames=150, num_joints=20, in_chans=3, acc_coords=3,
+                                  acc_features=1, spatial_embed=32,has_features = False,num_classes=27)
 model = model.to(device)
 
 
@@ -56,7 +67,7 @@ wt_decay=5e-4
 
 criterion = torch.nn.CrossEntropyLoss()
 
-optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9,weight_decay=wt_decay)
+optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=wt_decay)
 #optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wt_decay)
 
 #ASAM
@@ -90,6 +101,7 @@ for epoch in range(max_epochs):
     accuracy = 0.
     cnt = 0.
     for inputs, targets in training_generator:
+        targets = targets.long() - 1
         inputs = inputs.to(device); #print("Input batch: ",inputs)
         targets = targets.to(device)
 
@@ -130,9 +142,12 @@ for epoch in range(max_epochs):
 
             b = inputs.shape[0]
             inputs = inputs.to(device); #print("Validation input: ",inputs)
+            targets = targets.int() -1
+            print(targets)
             targets = targets.to(device)
             
             predictions = model(inputs.float())
+            print(torch.argmax(predictions, 1))
             with torch.no_grad():
                 loss += batch_loss.sum().item()
                 accuracy += (torch.argmax(predictions, 1) == targets).sum().item()
@@ -143,7 +158,7 @@ for epoch in range(max_epochs):
     
         if best_accuracy < accuracy:
             best_accuracy = accuracy
-            torch.save(model.state_dict(),PATH+exp+'_best_ckpt.pt'); print("Check point "+PATH+exp+'_best_ckpt.pt'+ ' Saved!')
+            torch.save(model.state_dict(),PATH+exp+'_best_ckptutdmm.pt'); print("Check point "+PATH+exp+'_best_ckptutdmm.pt'+ ' Saved!')
 
     print(f"Epoch: {epoch},Test accuracy:  {accuracy:6.2f} %, Test loss:  {loss:8.5f}")
 
@@ -156,6 +171,6 @@ print(f"Best test accuracy: {best_accuracy}")
 print("TRAINING COMPLETED :)")
 
 #Save visualization
-get_plot(PATH,epoch_acc_train,epoch_acc_val,'Accuracy-'+exp,'Train Accuracy','Val Accuracy','Epochs','Acc')
-get_plot(PATH,epoch_loss_train,epoch_loss_val,'Loss-'+exp,'Train Loss','Val Loss','Epochs','Loss')
+# get_plot(PATH,epoch_acc_train,epoch_acc_val,'Accuracy-'+exp,'Train Accuracy','Val Accuracy','Epochs','Acc')
+# get_plot(PATH,epoch_loss_train,epoch_loss_val,'Loss-'+exp,'Train Loss','Val Loss','Epochs','Loss')
 
