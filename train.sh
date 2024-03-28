@@ -1,6 +1,6 @@
 #!/bin/bash
 weights="inertial_KD.pt"
-work_dir="exps/berkley_woKD/student_KD"
+work_dir="exps/results/BS2"
 result_file="result.txt"
 
 

@@ -32,62 +32,62 @@ from utils.dataset_loader import load_inertial_data, load_skeleton_data
 def get_args():
 
     parser = argparse.ArgumentParser(description = 'Distillation')
-    parser.add_argument('--config' , default = './config/utd/student.yaml')
-    parser.add_argument('--dataset', type = str, default= 'utd' )
+    parser.add_argument('--config', default = './config/utd/student.yaml')
+    parser.add_argument('--dataset', type = str, default = 'utd' )
     #training
     parser.add_argument('--batch-size', type = int, default = 16, metavar = 'N',
-                        help = 'input batch size for training (default: 8)')
+                        help = 'input batch size for training (default: 16)')
 
     parser.add_argument('--test-batch-size', type = int, default = 8, 
-                        metavar = 'N', help = 'input batch size for testing(default: 1000)')
+                        metavar = 'N', help = 'input batch size for testing(default: 8)')
     parser.add_argument('--val-batch-size', type = int, default = 8, 
-                        metavar = 'N', help = 'input batch size for testing(default: 1000)')
+                        metavar = 'N', help = 'input batch size for testing(default: 8)')
 
-    parser.add_argument('--num-epoch', type = int , default = 70, metavar = 'N', 
-                        help = 'number of epochs to train (default: 10)')
+    parser.add_argument('--num-epoch', type = int, default = 70, metavar = 'N', 
+                        help = 'number of epochs to train (default: 70)')
     parser.add_argument('--start-epoch', type = int, default = 0)
 
     #optim
     parser.add_argument('--optimizer', type = str, default = 'Adam')
     parser.add_argument('--base-lr', type = float, default = 0.001, metavar = 'LR', 
                         help = 'learning rate (default: 0.001)')
-    parser.add_argument('--weight-decay', type = float , default=0.0004)
+    parser.add_argument('--weight-decay', type = float, default=0.0004)
 
     #model
-    parser.add_argument('--model' ,default= None, help = 'Name of Model to load')
+    parser.add_argument('--model', default = None, help = 'Name of Model to load')
 
     #model args
-    parser.add_argument('--device', nargs='+', default=[0], type = int)
-    parser.add_argument('--model-args', default= str, help = 'A dictionary for model args')
+    parser.add_argument('--device', nargs = '+', default = [0], type = int)
+    parser.add_argument('--model-args', default = str, help = 'A dictionary for model args')
     parser.add_argument('--weights', type = str, help = 'Location of weight file')
-    parser.add_argument('--model-saved-name', type = str, help = 'Weigt name', default='test')
+    parser.add_argument('--model-saved-name', type = str, help = 'Weigt name', default = 'test')
 
     #loss args
-    parser.add_argument('--loss', default='loss.BCE' , help = 'Name of loss function to use' )
-    parser.add_argument('--loss-args', default ="{}", type = str,  help = 'A dictionary for loss')
+    parser.add_argument('--loss', default = 'loss.BCE', help = 'Name of loss function to use' )
+    parser.add_argument('--loss-args', default = "{}", type = str, help = 'A dictionary for loss')
     # parser.add_argument('--loss-args', default=str, help = 'A dictonary for loss args' )
 
     #dataloader 
-    parser.add_argument('--feeder', default= None , help = 'Dataloader location')
-    parser.add_argument('--train-feeder-args',default=str, help = 'A dict for dataloader args' )
-    parser.add_argument('--val-feeder-args', default=str , help = 'A dict for validation data loader')
-    parser.add_argument('--test_feeder_args',default=str, help= 'A dict for test data loader')
+    parser.add_argument('--feeder', default = None, help = 'Dataloader location')
+    parser.add_argument('--train-feeder-args', default = str, help = 'A dict for dataloader args' )
+    parser.add_argument('--val-feeder-args', default = str, help = 'A dict for validation data loader')
+    parser.add_argument('--test_feeder_args', default = str, help = 'A dict for test data loader')
     parser.add_argument('--include-val', type = str2bool, default= True , help = 'If we will have the validation set or not')
 
     #initializaiton
-    parser.add_argument('--seed', type =  int , default = 2 , help = 'random seed (default: 1)') 
+    parser.add_argument('--seed', type =  int, default = 2, help = 'random seed (default: 1)') 
 
-    parser.add_argument('--log-interval', type = int , default = 10, metavar = 'N',
-                        help = 'how many bathces to wait before logging training status')
+    parser.add_argument('--log-interval', type = int, default = 10, metavar = 'N',
+                        help = 'how many batches to wait before logging training status')
 
 
    
     parser.add_argument('--work-dir', type = str, default = 'simple', metavar = 'F', help = "Working Directory")
-    parser.add_argument('--print-log',type=str2bool,default=True,help='print logging or not')
+    parser.add_argument('--print-log', type=str2bool, default = True, help = 'print logging or not')
     
     parser.add_argument('--phase', type = str, default = 'train')
     
-    parser.add_argument('--num-worker', type = int, default= 0)
+    parser.add_argument('--num-worker', type = int, default = 0)
     parser.add_argument('--result-file', type = str, help = 'Name of resutl file')
     
     return parser
@@ -272,14 +272,14 @@ class Trainer():
             elif self.arg.dataset == 'smartfallmm':
 
                 train_data = sf_processing(mode = 'train',
-                                            acc_window_size= = self.arg.model_args['acc_frames'],
+                                            acc_window_size= self.arg.model_args['acc_frames'],
                                             skl_window_size=self.arg.model_args['mocap_frames'], 
                                             num_windows = 10)
                 
                 norm_train, acc_scaler, skl_scaler =  normalization(data=train_data, mode = 'fit')
 
                 val_data = sf_processing(mode='test', 
-                                          acc_window_size= = self.arg.model_args['acc_frames'],
+                                          acc_window_size=self.arg.model_args['acc_frames'],
                                           skl_window_size=self.arg.model_args['mocap_frames'], 
                                           num_windows=10)
                 norm_val, acc_scaler, skl_scaler =  normalization(data=val_data, mode = 'fit')

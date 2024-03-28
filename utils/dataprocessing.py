@@ -128,7 +128,7 @@ def sf_processing(data_dir = 'data/smartfallmm', mode = 'train',
         acc_data = acc_df.values[:, -3:]
         processed_acc = process_data(acc_data, acc_window_size, acc_stride)
         skl_df  = pd.read_csv(path).dropna()
-        if skl_data.shape[1] == 97:
+        if skl_df.shape[1] == 97:
             skl_data = skl_df.iloc[: , 1:]
         else:
             skl_data = skl_df.iloc[:, 2:]

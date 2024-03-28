@@ -30,6 +30,10 @@ pip install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f htt
 - Model Configuration or Skeleton model is kept under ``config/smartfallmm/teacher.yaml`` for SmartFallMM dataset.
 
 ## Train and test
+Run screen to enable background running
+Exit ctrl A+D
+Return screen-r
+
 Give execution access to ``train.sh`` with 
 ```bash
 chmod +x ./train.sh
