@@ -1,6 +1,13 @@
 #!/bin/bash
+<<<<<<< HEAD
 weights="inertial_KD.pt"
 work_dir="exps/results/GarbageTest"
+=======
+teacher_weights="spctTransformer.pth"
+work_dir="exps/UTD_woKD/spatial_transformer"
+student_weights="ttfstudent.pth"
+#teacher_dir="exps/UTD_wKD/ttf4"
+>>>>>>> aa730082ddd1d91f08ce2c151eeac1927090698d
 result_file="result.txt"
 
 
@@ -33,4 +40,9 @@ result_file="result.txt"
 #python3 distiller.py --config ./config/czu/distill.yaml --work-dir $work_dir --model-saved-name $weights  --weights $work_dir/$weights --device 3 --base-lr 2.5e-3 --include-val True
 
 #smartfallmm
+<<<<<<< HEAD
 python3 main.py --config ./config/smartfallmm/teacher.yaml --work-dir $work_dir --model-saved-name $weights  --weights $work_dir/$weights --device 6 --base-lr 2.5e-3 --include-val True
+=======
+python3 main.py --config ./config/smartfallmm/teacher.yaml --work-dir $work_dir --model-saved-name $teacher_weights  --weights $work_dir/$teacher_weights --device 6 --base-lr 2.5e-3 --include-val True
+python3 distiller.py --config ./config/smartfallmm/distill.yaml --work-dir $work_dir --model-saved-name $student_weights  --weights $work_dir/$teacher_weights --device 6 --base-lr 2.5e-3 --include-val True
+>>>>>>> aa730082ddd1d91f08ce2c151eeac1927090698d
