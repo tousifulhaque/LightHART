@@ -3,7 +3,7 @@ teacher_model: Models.st_cvtransformer.MMTransformer
 student_model: Models.model_acc_only.ActTransformerAcc
 
 #teacher_weight: exps/UTD_woKD/MMNorm/convTransformer.pt
-
+dataset: 'smartfallmm'
 #model_args
 teacher_args:
   acc_frames : 64
