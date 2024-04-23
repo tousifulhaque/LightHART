@@ -126,7 +126,7 @@ def sf_processing(data_dir = 'data/smartfallmm', mode = 'train',
 
         acc_stride = (acc_df.shape[0] - acc_window_size) // num_windows
         acc_data = acc_df.values[:, -3:]
-        processed_acc = process_data(acc_data, acc_window_size, acc_stride)
+        
         skl_df  = pd.read_csv(path).dropna()
         if skl_df.shape[1] == 97:
             skl_data = skl_df.iloc[: , 1:]
@@ -142,6 +142,7 @@ def sf_processing(data_dir = 'data/smartfallmm', mode = 'train',
             continue
         #skl_data = np.squeeze(np.load(skl_file))
         t, j , c = skl_data.shape
+        processed_acc = process_data(acc_data, acc_window_size, acc_stride)
         skl_data = rearrange(skl_data, 't j c -> t (j c)')
         processed_skl = process_data(skl_data, skl_window_size, skl_stride)
         skl_data = rearrange(processed_skl, 'n t (j c) -> n t j c', j =j, c =c)
