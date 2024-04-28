@@ -37,3 +37,4 @@ result_file="result.txt"
 #smartfallmm
 python3 main.py --config ./config/smartfallmm/teacher.yaml --work-dir $work_dir --model-saved-name $teacher_weights  --weights $work_dir/$teacher_weights --device 6 --base-lr 2.5e-3 --include-val True
 python3 distiller.py --config ./config/smartfallmm/distill.yaml --work-dir $work_dir --model-saved-name $student_weights  --teacher-weights $work_dir/$teacher_weights --device 6 --base-lr 2.5e-3 --include-val True
+#python3 distiller.py --config ./config/utd/distill.yaml --work-dir $student_dir --device 7  --teacher-weight "$teacher_dir/$teacher_weights" --model-saved-name "$student_weights" --device 7 --base-lr 2.5e-3 --include-val True
