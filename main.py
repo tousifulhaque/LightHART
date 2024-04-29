@@ -339,6 +339,11 @@ class Trainer():
                                 acc_window_size = self.arg.model_args['acc_frames'], 
                                     skl_window_size = self.arg.model_args['spatial_embed'], 
                                     num_windows = 15)
+            elif self.arg.dataset == 'smartfallmm':
+                self.test_data = sf_processing(subjects = TEST_SUBJECTS, 
+                                          acc_window_size=self.arg.model_args['acc_frames'],
+                                          skl_window_size=self.arg.model_args['mocap_frames'], 
+                                          num_windows=10)
             else:
                 self.test_data = np.load('data/berkley_mhad/bhmad_uniformdis_skl50_test.npz')
             #self.distribution_viz(self.test_data['labels'], self.arg.work_dir, 'test')
