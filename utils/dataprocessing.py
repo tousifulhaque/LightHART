@@ -92,7 +92,7 @@ def bmhad_processing(data_dir = 'data/berkley_mhad', mode = 'train', acc_window_
 
     return dataset
 
-def sf_processing(data_dir = 'data/smartfallmm', mode = 'train',
+def sf_processing(data_dir = 'data/smartfallmm', subjects = None,
                     skl_window_size = 32, 
                     num_windows = 10,
                     acc_window_size = 32,
@@ -101,16 +101,18 @@ def sf_processing(data_dir = 'data/smartfallmm', mode = 'train',
     acc_set = []
     label_set = []
 
-    file_paths = glob.glob(f'{data_dir}/{mode}/skeleton/*.csv')
+    file_paths = glob.glob(f'{data_dir}/skeleton_student/*.csv')
     print("file paths {}".format(len(file_paths)))
     #skl_path = f"{data_dir}/{mode}_skeleton_op/"
     #skl_path = f"{data_dir}/{mode}/skeleton/"
-    acc_dir = f"{data_dir}/{mode}/inertial/"
+    acc_dir = f"{data_dir}/meta_wrist_student/"
     pattern = r'S\d+A\d+T\d+'
     act_pattern = r'(A\d+)'
     label_pattern = r'(\d+)'
     for idx,path in enumerate(file_paths):
         desp = re.findall(pattern, file_paths[idx])[0]
+        if not int(desp[1:3]) in subjects:
+            continue
         act_label = re.findall(act_pattern, path)[0]
         label = int(re.findall(label_pattern, act_label)[0])-1
         if label < 10 : 

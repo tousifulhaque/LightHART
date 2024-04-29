@@ -1,7 +1,9 @@
 #!/bin/bash
 teacher_weights="spctTransformer.pth"
-work_dir="exps/UTD_woKD/spatial_transformer"
+teacher_dir="exps/smfall_woKD/spatial_transformer"
+student_dir="exps/smfall_woKD/inertial_transformer"
 student_weights="ttfstudent.pth"
+distil_dir="exps/smfall_wKD/inertail_transformer"
 #teacher_dir="exps/UTD_wKD/ttf4"
 result_file="result.txt"
 
@@ -35,6 +37,8 @@ result_file="result.txt"
 #python3 distiller.py --config ./config/czu/distill.yaml --work-dir $work_dir --model-saved-name $weights  --weights $work_dir/$weights --device 3 --base-lr 2.5e-3 --include-val True
 
 #smartfallmm
-python3 main.py --config ./config/smartfallmm/teacher.yaml --work-dir $work_dir --model-saved-name $teacher_weights  --weights $work_dir/$teacher_weights --device 6 --base-lr 2.5e-3 --include-val True
-python3 distiller.py --config ./config/smartfallmm/distill.yaml --work-dir $work_dir --model-saved-name $student_weights  --teacher-weights $work_dir/$teacher_weights --device 6 --base-lr 2.5e-3 --include-val True
-#python3 distiller.py --config ./config/utd/distill.yaml --work-dir $student_dir --device 7  --teacher-weight "$teacher_dir/$teacher_weights" --model-saved-name "$student_weights" --device 7 --base-lr 2.5e-3 --include-val True
+#python3 main.py --config ./config/smartfallmm/teacher.yaml --work-dir $work_dir --model-saved-name $teacher_weights  --weights $work_dir/$teacher_weights --device 1 --base-lr 2.5e-3 --include-val True
+python main.py --config ./config/smartfallmm/student.yaml --work-dir $student_dir --model-saved-name $student_weights --device 1 --base-lr 2.5e-3 --include-val True
+python main.py --config ./config/smartfallmm/student.yaml --work-dir $student_dir --weights $student_dir/$student_dir --device 1 --base-lr 2.5e-3 --phase test
+#python3 distiller.py --config ./config/smartfallmm/distill.yaml --work-dir $work_dir --model-saved-name $student_weights  --teacher-weights $work_dir/$teacher_weights --device 6 --base-lr 2.5e-3 --include-val True
+#python3 distiller.py --config ./config/smartfallmm/distill.yaml --work-dir $student_dir --device 7  --teacher-weight "$teacher_dir/$teacher_weights" --model-saved-name "$student_weights" --device 7 --base-lr 2.5e-3 --include-val True
