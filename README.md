@@ -1,5 +1,5 @@
-# LightHART: Lightweight Human Activity Recognition Transformer
-Implementation of "Lightweight Human Activity Recognition Transformer" accepted in ICPR 2024.
+# FeatureKD : Feature Based Knowledge Distillation for Fall Detection"
+Implementation of FeatureKD described in SmartFallMM paper.
 
 ## Getting started 
 - Create an pip environment and use the requirements.txt to install all the neccasary files.
@@ -10,7 +10,7 @@ pip install -r requirements.txt
 This requirements file doesn't have the instructions to install pytorch. Please install pytorch 1.13.0 for the experiments
 
 ## Get the Dataset
-- Download the SmartFallMM data from [this link](https://github.com/tousifulhaque/smartfallmm.git). This is a a private repo so, please ask me to add you as a collaborator to access the dataset. Put the dataset under `data` folder. 
+- Download the SmartFallMM data from [this link](https://github.com/tousifulhaque/smartfallmm.git). Put the dataset under `data` folder. 
 
 
 ## Choose and configure models
